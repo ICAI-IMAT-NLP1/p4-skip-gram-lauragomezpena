@@ -7,6 +7,7 @@ try:
 except ImportError:
     from utils import tokenize
 
+import random
 
 def load_and_preprocess_data(infile: str) -> List[str]:
     """
@@ -23,7 +24,7 @@ def load_and_preprocess_data(infile: str) -> List[str]:
 
     # Preprocess and tokenize the text
     # TODO
-    tokens: List[str] = None
+    tokens: List[str] = tokenize(text)
 
     return tokens
 
@@ -39,13 +40,13 @@ def create_lookup_tables(words: List[str]) -> Tuple[Dict[str, int], Dict[int, st
         and the second maps integers to words (int_to_vocab).
     """
     # TODO
-    word_counts: Counter = None
+    word_counts: Counter = Counter(words)
     # Sorting the words from most to least frequent in text occurrence.
-    sorted_vocab: List[int] = None
+    sorted_vocab: List[str] = sorted(word_counts, key=word_counts.get, reverse=True)
     
     # Create int_to_vocab and vocab_to_int dictionaries.
-    int_to_vocab: Dict[int, str] = None
-    vocab_to_int: Dict[str, int] = None
+    int_to_vocab: Dict[int, str] = {idx: word for idx, word in enumerate(sorted_vocab)}
+    vocab_to_int: Dict[str, int] = {word: idx for idx, word in enumerate(sorted_vocab)}
 
     return vocab_to_int, int_to_vocab
 
@@ -71,10 +72,13 @@ def subsample_words(words: List[str], vocab_to_int: Dict[str, int], threshold: f
     """
     # TODO
     # Convert words to integers
-    int_words: List[int] = None
+    int_words: List[int] = [vocab_to_int[word] for word in words]
     
-    freqs: Dict[str, float] = None
-    train_words: List[str] = None
+    count = Counter(int_words)
+    total_words = sum(count.values())
+    freqs: Dict[str, float] =  {word: count[word] for word in count} # no deberia ser int,float
+    probs = {word : 1-torch.sqrt(torch.tensor(threshold/(freqs[word]/total_words))) for word in freqs.keys()}
+    train_words: List[int] =[w for w in int_words if 0.5 < probs[w]]
 
     return train_words, freqs
 
@@ -91,11 +95,13 @@ def get_target(words: List[str], idx: int, window_size: int = 5) -> List[str]:
         List[str]: A list of words selected randomly within the window around the target word.
     """
     # TODO
-    target_words: List[str] = None
+
+    size = random.randint(1,window_size)
+    target_words: List[str] = words[idx-size : idx]+ words[idx+1 : idx+size+1]
 
     return target_words
 
-def get_batches(words: List[int], batch_size: int, window_size: int = 5) -> Generator[Tuple[List[int], List[int]]]:
+def get_batches(words: List[int], batch_size: int, window_size: int = 5):
     """Generate batches of word pairs for training.
 
     This function creates a generator that yields tuples of (inputs, targets),
@@ -116,7 +122,22 @@ def get_batches(words: List[int], batch_size: int, window_size: int = 5) -> Gene
 
     # TODO
     for idx in range(0, len(words), batch_size):
-        inputs, targets: Tuple[List[int], List[int]] = None, None
+        # inputs, targets: Tuple[List[int], List[int]] = None, None
+
+
+        batch = words[idx: idx + batch_size]
+        if len(batch) == batch_size:
+            
+            inputs, targets = [], []
+        
+            for i, target_word in enumerate(batch):
+                size = random.randint(1,window_size)
+                target = batch[i-size : i]+ batch[i+1 : i+size+1]
+
+                for word in target:
+                    inputs.append(target_word)
+                    targets.append(word)
+
         yield inputs, targets
 
 def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid_window: int = 100, device: str = 'cpu'):
@@ -141,7 +162,14 @@ def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid
     """
 
     # TODO
-    valid_examples: torch.Tensor = None
-    similarities: torch.Tensor = None
+    valid_examples: torch.Tensor = torch.randint(high = valid_window, size = (valid_size,), device=device)
+    
+    embed_weights = embedding.weight.to(device)
+    norms = embed_weights.norm(dim=1, keepdim=True)
+    normalized_embeddings = embed_weights / norms  # normalizar para no tener que dividir ente los módulos
+  
+    valid_embeddings = normalized_embeddings[valid_examples]  # embeddings de las palabras aleatorias
+   
+    similarities: torch.Tensor = torch.mm(valid_embeddings, normalized_embeddings.t())   # para hacer producto escalar es simplemente hacer multiplicación de vactor columna y fila 
 
     return valid_examples, similarities

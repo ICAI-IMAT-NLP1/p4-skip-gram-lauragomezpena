@@ -119,11 +119,9 @@ def get_batches(words: List[int], batch_size: int, window_size: int = 5):
         - The first list contains input words (repeated for each of their context words).
         - The second list contains the corresponding target context words.
     """
-
     # TODO
     for idx in range(0, len(words), batch_size):
         # inputs, targets: Tuple[List[int], List[int]] = None, None
-
 
         batch = words[idx: idx + batch_size]
         if len(batch) == batch_size:
@@ -163,7 +161,7 @@ def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid
 
     # TODO
     valid_examples: torch.Tensor = torch.randint(high = valid_window, size = (valid_size,), device=device)
-    
+
     embed_weights = embedding.weight.to(device)
     norms = embed_weights.norm(dim=1, keepdim=True)
     normalized_embeddings = embed_weights / norms  # normalizar para no tener que dividir ente los módulos

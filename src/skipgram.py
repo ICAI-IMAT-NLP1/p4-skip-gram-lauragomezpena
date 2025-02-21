@@ -137,7 +137,7 @@ class NegativeSamplingLoss(nn.Module):
         noise_vectors = noise_vectors.transpose(1,2)
 
         # Compute log-sigmoid loss for incorrect classifications
-        noise_dot_product = torch.bmm(input_vectors,noise_vectors)
+        noise_dot_product = -torch.bmm(input_vectors,noise_vectors)
         # TODO
         noise_loss = torch.sum(nn.functional.logsigmoid(noise_dot_product))
 

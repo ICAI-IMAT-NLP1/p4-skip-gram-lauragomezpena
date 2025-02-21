@@ -130,8 +130,7 @@ def get_batches(words: List[int], batch_size: int, window_size: int = 5):
         
             for i, target_word in enumerate(batch):
 
-                # target = batch[i-window_size : i]+ batch[i+1 : i+window_size+1]
-                target =get_target(batch, i, window_size)
+                target = get_target(batch, i, window_size)
 
                 for word in target:
                     inputs.append(target_word)

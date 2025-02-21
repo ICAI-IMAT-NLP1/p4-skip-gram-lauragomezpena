@@ -48,8 +48,8 @@ def train_skipgram(model: SkipGramNeg,
 
             # input, output, and noise vectors
             # TODO
-            input_vectors = model.forward_input(torch.tensor(input_words))
-            output_vectors = model.forward_output(torch.tensor(target_words))
+            input_vectors = model.forward_input(inputs)
+            output_vectors = model.forward_output(targets)
             noise_vectors = model.forward_noise(len(input_vectors),window_size )
             
             # negative sampling loss

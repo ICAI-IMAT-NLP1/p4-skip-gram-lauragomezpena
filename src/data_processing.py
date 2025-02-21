@@ -120,8 +120,8 @@ def get_batches(words: List[int], batch_size: int, window_size: int = 5):
         - The second list contains the corresponding target context words.
     """
     # TODO
+
     for idx in range(0, len(words), batch_size):
-        # inputs, targets: Tuple[List[int], List[int]] = None, None
 
         batch = words[idx: idx + batch_size]
         if len(batch) == batch_size:
@@ -129,14 +129,15 @@ def get_batches(words: List[int], batch_size: int, window_size: int = 5):
             inputs, targets = [], []
         
             for i, target_word in enumerate(batch):
-                size = random.randint(1,window_size)
-                target = batch[i-size : i]+ batch[i+1 : i+size+1]
+
+                # target = batch[i-window_size : i]+ batch[i+1 : i+window_size+1]
+                target =get_target(batch, i, window_size)
 
                 for word in target:
                     inputs.append(target_word)
                     targets.append(word)
 
-        yield inputs, targets
+            yield inputs, targets
 
 def cosine_similarity(embedding: torch.nn.Embedding, valid_size: int = 16, valid_window: int = 100, device: str = 'cpu'):
     """Calculates the cosine similarity of validation words with words in the embedding matrix.

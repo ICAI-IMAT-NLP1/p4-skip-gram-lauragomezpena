@@ -90,7 +90,8 @@ class SkipGramNeg(nn.Module):
 
         # Reshape output vectors to size (batch_size, n_samples, n_embed)
         # TODO
-        noise_vectors: torch.Tensor = self.out_embed(noise_words.view(batch_size, n_samples))
+        noise_words = noise_words.view(batch_size, n_samples)  
+        noise_vectors: torch.Tensor = self.out_embed(noise_words)
 
         return noise_vectors
 
@@ -127,12 +128,14 @@ class NegativeSamplingLoss(nn.Module):
         
         input_vectors = input_vectors.unsqueeze(1)
         output_vectors = output_vectors.unsqueeze(2)
+
         # Compute log-sigmoid loss for correct classifications
         # TODO
         out_dot_product = torch.bmm(input_vectors, output_vectors).squeeze(2)
         out_loss = torch.sum(nn.functional.logsigmoid(out_dot_product))
 
         noise_vectors = noise_vectors.transpose(1,2)
+
         # Compute log-sigmoid loss for incorrect classifications
         noise_dot_product = torch.bmm(input_vectors,noise_vectors)
         # TODO
